@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.3.0/mdb.min.js"></script>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href=" {% static '/style.css' %} ">
+</head>
+
+{% block content %}
+<div class="w-50">
+  <form method="post">
+  <div class="w-100" style="background: white; border-radius: 20px;">
+    <h5 style="justify-content: center;" class="d-flex">Temperature</h5>
+    <div class="double_range_slider_box w-100">
+      <div class="double_range_slider">
+        <span class="range_track" id="temperature"></span>
+
+          <input type="range" class="min temp" min="{{ min_temperature }}" max="{{ max_temperature }}" value="{{ min_temperature }}" step="0.1" name="temp_min">
+          <input type="range" class="max temp" min="{{ min_temperature }}" max="{{ max_temperature }}" value="{{ max_temperature }}" step="0.1" name="temp_max">
+
+        <div class="temp_min minvalue"></div>
+        <div class="temp_max maxvalue"></div>
+      </div>
+    </div>
+  </div>
+  <div class="w-100 mt-5" style="background: white; border-radius: 20px;">
+    <h5 style="justify-content: center;" class="d-flex">Wind Speed</h5>
+    <div class="double_range_slider_box w-100">
+      <div class="double_range_slider">
+        <span class="range_track" id="wind_speed"></span>
+
+          <input type="range" class="min wind_speed" min="{{ min_wind_speed }}" max="{{ max_wind_speed }}" value="{{ min_wind_speed }}" step="0.1" name="wind_speed_min">
+          <input type="range" class="max wind_speed" min="{{ min_wind_speed }}" max="{{ max_wind_speed }}" value="{{ max_wind_speed }}" step="0.1" name="wind_speed_max">
+
+        <div class="wind_speed_min minvalue"></div>
+        <div class="wind_speed_max maxvalue"></div>
+      </div>
+    </div>
+  </div>
+    <div class="w-100 mt-5" style="background: white; border-radius: 20px;">
+    <h5 style="justify-content: center;" class="d-flex">Wind Speed</h5>
+    <div class="double_range_slider_box w-100">
+      <div class="double_range_slider">
+        <span class="range_track" id="wind_direction"></span>
+
+          <input type="range" class="min wind_direction" min="{{ min_wind_direction }}" max="{{ max_wind_direction }}" value="{{ min_wind_direction }}" step="0.1" name="wind_dir_min">
+          <input type="range" class="max wind_direction" min="{{ min_wind_direction }}" max="{{ max_wind_direction }}" value="{{ max_wind_direction }}" step="0.1" name="wind_dir_max">
+
+        <div class="wind_direction_min minvalue"></div>
+        <div class="wind_direction_max maxvalue"></div>
+      </div>
+    </div>
+  </div>
+    {% csrf_token %}
+  <button type="submit" enctype="multipart/form-data"> Filter </button>
+  </form>
+</div>
+
+<canvas id="line-chart" style="width:100%;max-width:700px"></canvas>
+
+<script type="text/javascript" src="{% static '/range_slider.js' %}"></script>
+<script type="text/javascript" src="{% static '/range_slider_2.js' %}"></script>
+<script type="text/javascript" src="{% static '/range_slider_3.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+
+<script>
+
+    var dayFormat = 'YYYY-MM-DD hh:mm:ss';
+
+    function newDateString(year, month, day, hour, minute, second) {
+      return moment().year(year).month(month).date(day).hour(hour).minute(minute).second(second).format(dayFormat);
+      }
+
+    var config = {
+    data: {
+      type: 'line',
+      labels: [ {% for item in date %}
+                        newDateString( {{ item.year }},
+                                       {{ item.month }},
+                                       {{ item.day }},
+                                       {{ item.hour }},
+                                       {{ item.minute }},
+                                       {{ item.second }}
+                                     ),
+                    {% endfor %}],
+        datasets: [{
+          type: 'line',
+          data: {{ temperature|safe }},
+          fill: false,
+          borderColor: '#36A2EB',
+          backgroundColor: '#9BD0F5',
+          label: 'Temperature',
+          yAxisID: "y-axis-1",
+        },
+        {
+          type: 'line',
+          data: {{ wind_speed|safe }},
+          fill: false,
+          borderColor: '#000000',
+          backgroundColor: '#000000',
+          label: 'Wind Speed',
+          yAxisID: "y-axis-2",
+        },
+        {
+          type: 'line',
+          data: {{ wind_direction|safe }},
+          fill: false,
+          borderColor: '#AA0000',
+          backgroundColor: '#AA0000',
+          label: 'Wind Direction',
+          yAxisID: "y-axis-3",
+        }],
+      },
+      options: {
+        scales: {
+          yAxes: [{
+              type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+              display: true,
+              position: "left",
+              id: "y-axis-1",
+          },
+          {
+              type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+              display: true,
+              position: "left",
+              id: "y-axis-2",
+          },
+          {
+              type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+              display: true,
+              position: "left",
+              id: "y-axis-3",
+          }],
+          xAxes: [{
+            id: "x-axis-1",
+          }],
+      }
+     }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('line-chart').getContext('2d');
+      window.lineChart = new Chart(ctx, config);
+    };
+
+</script>
+
+{% endblock %}
